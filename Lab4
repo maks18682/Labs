@@ -1,0 +1,106 @@
+using System;
+
+namespace CourseManagementSystem
+{
+    struct Discount
+    {
+        public int Percent;
+        public int FixedAmount;
+
+        public Discount(int percent, int fixedAmount)
+        {
+            Percent = percent;
+            FixedAmount = fixedAmount;
+        }
+
+        public int ApplyToPrice(int price)
+        {
+            int percentDiscount = price * Percent / 100;
+            int totalDiscount = percentDiscount + FixedAmount;
+            return price - Math.Min(totalDiscount, price);
+        }
+    }
+
+    class Course
+    {
+        public string Title { get; set; }
+        public int BasePrice { get; set; }
+
+        public Course(string title, int basePrice)
+        {
+            Title = title;
+            BasePrice = basePrice;
+        }
+
+        public virtual int GetPrice()
+        {
+            return BasePrice;
+        }
+
+        public override string ToString()
+        {
+            return $"{Title}: {GetPrice()} р.";
+        }
+    }
+
+    class FreeCourse : Course
+    {
+        public FreeCourse() : base("Бесплатный курс", 0) { }
+    }
+
+    class ProCourse : Course
+    {
+        public int CertificateFee { get; set; }
+
+        public ProCourse(int certificateFee) : base("PRO курс", 3000)
+        {
+            CertificateFee = certificateFee;
+        }
+
+        public override int GetPrice()
+        {
+            return BasePrice + CertificateFee;
+        }
+    }
+
+    static class CourseUtils
+    {
+        public static void PrintCourse<T>(T course) where T : Course
+        {
+            Console.WriteLine(course.ToString());
+        }
+
+        public static int ApplyDiscount(int price, int percent)
+        {
+            return price - price * percent / 100;
+        }
+
+        public static int ApplyDiscount(int price, int amount, bool fixedDiscount)
+        {
+            return fixedDiscount ? Math.Max(0, price - amount) : price;
+        }
+    }
+
+    class Program
+    {
+        static void Main()
+        {
+            var free = new FreeCourse();
+            var pro = new ProCourse(500);
+
+            CourseUtils.PrintCourse(free);
+            CourseUtils.PrintCourse(pro);
+
+            int price = pro.GetPrice();
+
+            Discount studentDiscount = new Discount(15, 0);      
+            Discount holidayDiscount = new Discount(10, 200);    
+            Discount giftDiscount = new Discount(0, 1000);       
+
+            Console.WriteLine($"PRO курс: {price} р.");
+            Console.WriteLine($"Студенческая скидка: {studentDiscount.ApplyToPrice(price)} р.");
+            Console.WriteLine($"Праздничная скидка: {holidayDiscount.ApplyToPrice(price)} р.");
+            Console.WriteLine($"Подарочная скидка: {giftDiscount.ApplyToPrice(price)} р.");
+        }
+    }
+}
